@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head><title>Admin Dashboard</title></head>
+<body>
+  <h1>Welcome, <span id="adminName"></span></h1>
+  <nav>
+    <a href="assign-task.html">Assign Tasks</a> |
+    <a href="view-attendance.html">View Attendance</a>
+  </nav>
+  <button onclick="logout()">Logout</button>
+
+  <script>
+    function parseJwt(token) {
+      const base64 = token.split('.')[1];
+      return JSON.parse(atob(base64));
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) location.href = 'login.html';
+    const user = parseJwt(token);
+    if (user.role !== 'admin') location.href = 'employee-dashboard.html';
+    document.getElementById('adminName').textContent = user.name;
+
+    function logout() {
+      localStorage.removeItem('token');
+      location.href = 'login.html';
+    }
+  </script>
+</body>
+</html>

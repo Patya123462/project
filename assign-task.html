@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Assign Task</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #eef2f7;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .box {
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.15);
+      width: 350px;
+      text-align: center;
+    }
+
+    select, input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 15px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #logoutBtn {
+      background-color: #dc3545;
+      margin-top: 20px;
+    }
+
+    #logoutBtn:hover {
+      background-color: #c82333;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="box">
+    <h2>Assign Task</h2>
+    
+    <select id="employeeDropdown">
+      <option value="">Select Employee</option>
+    </select>
+
+    <input type="text" id="task" placeholder="Task Description" />
+    
+    <button onclick="assignTask()">Assign Task</button>
+    <button id="logoutBtn" onclick="logout()">Logout</button>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('token');
+
+    // Load employee list
+    async function loadEmployees() {
+      try {
+        const res = await fetch('http://localhost:5000/api/auth/employees');
+        const employees = await res.json();
+        const dropdown = document.getElementById('employeeDropdown');
+
+        employees.forEach(emp => {
+          const option = document.createElement('option');
+          option.value = emp._id;
+          option.textContent = `${emp.name} (${emp.email})`;
+          dropdown.appendChild(option);
+        });
+      } catch (err) {
+        console.error('Error loading employees:', err);
+        alert('Failed to load employee list');
+      }
+    }
+
+    // Assign task to selected employee
+    async function assignTask() {
+      const assignedTo = document.getElementById('employeeDropdown').value;
+      const task = document.getElementById('task').value;
+
+      if (!assignedTo || !task) {
+        alert('Please select an employee and enter a task.');
+        return;
+      }
+
+      try {
+        const res = await fetch('http://localhost:5000/api/tasks', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ assignedTo, task })
+        });
+
+        const result = await res.text();
+        if (!res.ok) return alert('Error: ' + result);
+        alert('✅ Task Assigned');
+        document.getElementById('task').value = '';
+      } catch (err) {
+        console.error(err);
+        alert('Failed to assign task');
+      }
+    }
+
+    // Logout user
+    function logout() {
+      localStorage.removeItem('token');
+      window.location.href = 'login.html';
+    }
+
+    // Auto run on page load
+    loadEmployees();
+  </script>
+</body>
+</html>

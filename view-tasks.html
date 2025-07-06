@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Tasks</title>
+</head>
+<body>
+  <h2>Assigned Tasks</h2>
+  <ul id="taskList"></ul>
+  <button onclick="window.location.href='employee-dashboard.html'">Back</button>
+
+  <script>
+    const token = localStorage.getItem('token');
+    if (!token) location.href = 'login.html';
+
+    function parseJwt(token) {
+      const base64 = token.split('.')[1];
+      return JSON.parse(atob(base64));
+    }
+
+    const user = parseJwt(token);
+    if (user.role !== 'employee') {
+      alert('Access denied');
+      location.href = 'admin-dashboard.html';
+    }
+
+    async function fetchTasks() {
+      const res = await fetch('/api/tasks/my', {
+        headers: { Authorization: 'Bearer ' + token }
+      });
+
+      const data = await res.json();
+      const list = document.getElementById('taskList');
+      list.innerHTML = '';
+
+      data.forEach(task => {
+        const li = document.createElement('li');
+        li.textContent = `${task.task} - ${new Date(task.date).toLocaleDateString()}`;
+        list.appendChild(li);
+      });
+    }
+
+    fetchTasks();
+  </script>
+</body>
+</html>

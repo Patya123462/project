@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mark Attendance</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .box {
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: center;
+      width: 320px;
+    }
+
+    .box h2 {
+      margin-bottom: 20px;
+    }
+
+    .box .info {
+      font-size: 12px;
+      margin-top: 15px;
+      color: gray;
+      word-break: break-word;
+    }
+
+    .btn {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .btn-green {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .btn-green:hover {
+      background-color: #218838;
+    }
+
+    .btn-red {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    .btn-red:hover {
+      background-color: #c82333;
+    }
+
+    .greeting {
+      font-size: 16px;
+      margin-bottom: 10px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="greeting" id="greetingText">Welcome!</div>
+    <h2>Mark Attendance</h2>
+    <button class="btn btn-green" onclick="markAttendance()">Mark Present</button>
+    <button class="btn btn-red" onclick="logout()">Logout</button>
+    <div class="info" id="tokenInfo"></div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('token');
+
+    function parseJwt(token) {
+      try {
+        return JSON.parse(atob(token.split('.')[1]));
+      } catch (e) {
+        return null;
+      }
+    }
+
+    const user = parseJwt(token);
+
+    if (!token || !user) {
+      alert('You are not logged in!');
+      location.href = 'login.html';
+    } else {
+      document.getElementById('greetingText').innerText = `Hello, ${user.name} (${user.role})`;
+    }
+
+    document.getElementById('tokenInfo').textContent = token ? "Token: " + token : "No token found";
+
+    async function markAttendance() {
+      try {
+        const res = await fetch('/api/attendance', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          }
+        });
+
+        const text = await res.text();
+
+        if (!res.ok) {
+          alert('❌ ' + text);
+        } else {
+          alert('✅ ' + text);
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Network error');
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('token');
+      location.href = 'login.html';
+    }
+  </script>
+</body>
+</html>

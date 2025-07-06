@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Tasks</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      padding: 30px;
+    }
+
+    .top-bar {
+      text-align: right;
+      margin-bottom: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      background-color: #e0f7fa;
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    button {
+      padding: 8px 16px;
+      background-color: #ff4d4d;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #e60000;
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <div class="container">
+    <h2>Your Assigned Tasks</h2>
+    <ul id="taskList">
+      <li>Loading tasks...</li>
+    </ul>
+  </div>
+
+  <script>
+    function logout() {
+      localStorage.removeItem('token');
+      window.location.href = 'login.html';
+    }
+
+    async function fetchTasks() {
+      const token = localStorage.getItem('token');
+      if (!token) return logout();
+
+      try {
+        const res = await fetch('http://localhost:5000/api/tasks', {
+          method: 'GET',
+          headers: {
+            'Authorization': 'Bearer ' + token
+          }
+        });
+
+        if (!res.ok) throw new Error('Failed to fetch tasks.');
+
+        const tasks = await res.json();
+        const taskList = document.getElementById('taskList');
+        taskList.innerHTML = '';
+
+        if (tasks.length === 0) {
+          taskList.innerHTML = '<li>No tasks assigned.</li>';
+        }
+
+        tasks.forEach(t => {
+          const li = document.createElement('li');
+          li.textContent = t.task + ' (Assigned on: ' + new Date(t.date).toLocaleDateString() + ')';
+          taskList.appendChild(li);
+        });
+      } catch (err) {
+        alert('Session expired or server error. Please log in again.');
+        logout();
+      }
+    }
+
+    fetchTasks();
+  </script>
+</body>
+</html>

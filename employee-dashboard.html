@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head><title>Employee Dashboard</title></head>
+<body>
+  <h1>Welcome, <span id="empName"></span></h1>
+  <button onclick="markAttendance()">Mark Attendance</button>
+  <button onclick="window.location.href='view-tasks.html'">View Tasks</button>
+  <button onclick="logout()">Logout</button>
+
+  <script>
+    function parseJwt(token) {
+      const base64 = token.split('.')[1];
+      return JSON.parse(atob(base64));
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) location.href = 'login.html';
+    const user = parseJwt(token);
+    if (user.role !== 'employee') location.href = 'admin-dashboard.html';
+    document.getElementById('empName').textContent = user.name;
+
+    async function markAttendance() {
+      const res = await fetch('/api/attendance', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const msg = await res.text();
+      alert(msg);
+    }
+
+    function logout() {
+      localStorage.removeItem('token');
+      location.href = 'login.html';
+    }
+  </script>
+</body>
+</html>
